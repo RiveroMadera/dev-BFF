@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable no-undef */
+/* eslint-disable no-shadow */
 /* eslint-disable func-names */
 /* eslint-disable global-require */
 import express from 'express';
@@ -10,16 +13,16 @@ import { StaticRouter } from 'react-router-dom';
 import { renderRoutes } from 'react-router-config';
 import { Provider } from 'react-redux';
 import { createStore } from 'redux';
+import cookieParser from 'cookie-parser';
+import boom from '@hapi/boom';
+import passport from 'passport';
+import axios from 'axios';
 import reducer from '../frontend/reducers';
 import Layout from '../frontend/components/Layout';
 import initialState from '../frontend/initialState';
 import serverRoutes from '../frontend/routes/serverRoutes';
 import getManifest from './getManifest';
 
-import cookieParser from 'cookie-parser';
-import boom from '@hapi/boom';
-import passport from 'passport';
-import axios from 'axios';
 
 dotenv.config();
 
@@ -94,14 +97,14 @@ const renderApp = (req, res) => {
   res.send(setResponse(html, preloadedState, req.hashManifest));
 };
 
-app.post("/auth/sign-in", async function (req, res, next) {
-  passport.authenticate("basic", function (error, data) {
+app.post("/auth/sign-in", async (req, res, next) => {
+  passport.authenticate("basic", (error, data) => {
     try {
       if (error || !data) {
         next(boom.unauthorized());
       }
 
-      req.login(data, { session: false }, async function (error) {
+      req.login(data, { session: false }, async (error) => {
         if (error) {
           next(error);
         }
@@ -121,17 +124,25 @@ app.post("/auth/sign-in", async function (req, res, next) {
   })(req, res, next);
 });
 
-app.post("/auth/sign-up", async function (req, res, next) {
+app.post("/auth/sign-up", async (req, res, next) => {
   const { body: user } = req;
 
   try {
-    await axios({
-      url: `${config.apiUrl}/api/auth/sign-up`,
+    const userData = await axios({
+      url: `${process.env.API_URL}/api/auth/sign-up`,
       method: "post",
-      data: user
+      data: {
+        'email': user.email,
+        'name': user.name,
+        'password': user.password,
+      }
     });
 
-    res.status(201).json({ message: "user created" });
+    res.status(201).json({
+      name: req.body.name,
+      email: req.body.email, 
+      id: userData.id
+    });
   } catch (error) {
     next(error);
   }
