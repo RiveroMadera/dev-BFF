@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react';
 import { connect } from 'react-redux';
 import Header from '../components/Header';
@@ -31,7 +32,7 @@ const Home = ({ myList, trends, originals }) => (
         ))}
       </Carousel>
     </Categories>
-    <Categories title="Originales de Platfix">
+    <Categories title="Originales">
       <Carousel>
         {originals.map(item =>
           <CarouselItem key={item.id} {...item} />
@@ -41,12 +42,10 @@ const Home = ({ myList, trends, originals }) => (
   </>
 );
 
-const mapStateToProps = state => {
-  return {
+const mapStateToProps = state => ({
     myList: state.myList,
     trends: state.trends,
     originals: state.originals
-  };
-};
+  });
 
 export default connect(mapStateToProps, null)(Home);
